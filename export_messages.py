@@ -32,12 +32,12 @@ def replace_by_local_image(data):
     data = data.copy()
     content = data['content']
     if content.get('msgtype') == 'm.image':
-        url, mimetype = content['url'], content['info']['mimetype']
-        if 'thumbnail_url' in content['info']:
+        url, mimetype = content['url'], content.get('info', {}).get('mimetype', 'image/jpeg')
+        if 'thumbnail_url' in content.get('info', {}):
             url, mimetype = content['info']['thumbnail_url'], content['info']['thumbnail_info']['mimetype']
         _, subtype = mimetype.split('/', 2)
         url = urlparse(url)
-        content['url'] = 'thumbnails/' + url.path.strip('/') + '.' + subtype
+        content['url'] = 'images/' + os.path.basename(url.path.strip('/')) + '.' + subtype
     return data
 
 

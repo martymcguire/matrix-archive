@@ -19,5 +19,4 @@ class Message(Document):
 
     @property
     def thumbnail_url(self):
-        return (self.content['info'].get('thumbnail_url')
-                if self.is_image() else None)
+        return self.content['url'] if self.is_image() else None

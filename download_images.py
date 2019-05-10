@@ -1,4 +1,4 @@
-
+import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -19,20 +19,25 @@ def download_stem(message, prefer_thumbnails):
 def run_downloads(messages, download_dir, prefer_thumbnails):
     for msg in messages:
         image_url = (msg.thumbnail_url if prefer_thumbnails else None) or msg.image_url
-        res = requests.head(get_download_url(image_url))
-        assert res.status_code == 200
-        mtype, subtype = res.headers['content-type'].split('/', 2)
-        if mtype != 'image':
-            print(f"Skipping {image_url}: {res.headers['content-type']}")
-            continue
+        download_url = get_download_url(image_url).replace('//maktro.net','//matrix.maktro.net:8448')
+        try:
+          res = requests.head(download_url, verify=False)
+          assert res.status_code == 200
+          mtype, subtype = res.headers['content-type'].split('/', 2)
+          if mtype != 'image':
+              print(f"Skipping {download_url}: {res.headers['content-type']}")
+              continue
 
-        res = requests.get(get_download_url(image_url))
-        assert res.status_code == 200
-        filename = (download_dir / download_stem(msg, prefer_thumbnails)
-                    ).with_suffix('.' + subtype)
-        print('Downloading', image_url, '->', filename)
-        with open(filename, 'wb') as fp:
-            fp.write(res.content)
+          res = requests.get(download_url, verify=False)
+          assert res.status_code == 200
+          filename = (download_dir / download_stem(msg, prefer_thumbnails)
+                      ).with_suffix('.' + subtype)
+          print('Downloading', download_url, '->', filename)
+          with open(filename, 'wb') as fp:
+              fp.write(res.content)
+        except:
+          e = sys.exc_info()[0]
+          print( "<p>Error downloading '%s' : %s</p>" % (download_url, e) )
 
 
 @click.command()
